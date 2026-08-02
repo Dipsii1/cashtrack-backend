@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isoDate } from "./common.js";
 
 export const savingsGoalPublicIdSchema = z.object({
   publicId: z.string().min(1),
@@ -7,13 +8,13 @@ export const savingsGoalPublicIdSchema = z.object({
 export const createSavingsGoalSchema = z.object({
   name: z.string().min(1).max(100),
   targetAmount: z.number().positive().multipleOf(0.01),
-  targetDate: z.coerce.date().optional(),
+  targetDate: isoDate.optional(),
 });
 
 export const updateSavingsGoalSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   targetAmount: z.number().positive().multipleOf(0.01).optional(),
-  targetDate: z.coerce.date().nullable().optional(),
+  targetDate: isoDate.nullable().optional(),
   currentAmount: z.number().nonnegative().multipleOf(0.01).optional(),
   isAchieved: z.boolean().optional(),
 });

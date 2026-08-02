@@ -57,9 +57,10 @@ export const budgetRepository = {
       },
     }),
 
-  delete: async (publicId: string, userId: bigint): Promise<void> => {
-    await prisma.budget.delete({
-      where: { publicId },
+  delete: async (publicId: string, userId: bigint): Promise<boolean> => {
+    const result = await prisma.budget.deleteMany({
+      where: { publicId, userId },
     });
+    return result.count > 0;
   },
 };

@@ -45,9 +45,10 @@ export const categoryRepository = {
       data,
     }),
 
-  delete: async (publicId: string, userId: bigint): Promise<void> => {
-    await prisma.category.delete({
-      where: { publicId },
+  delete: async (publicId: string, userId: bigint): Promise<boolean> => {
+    const result = await prisma.category.deleteMany({
+      where: { publicId, userId },
     });
+    return result.count > 0;
   },
 };

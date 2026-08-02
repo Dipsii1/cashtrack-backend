@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isoDate } from "./common.js";
 
 export const recurringPublicIdSchema = z.object({
   publicId: z.string().min(1),
@@ -12,7 +13,7 @@ export const createRecurringSchema = z.object({
   type: z.enum(["INCOME", "EXPENSE"]),
   frequency: z.enum(["DAILY", "WEEKLY", "MONTHLY", "YEARLY"]),
   interval: z.number().int().min(1).max(365).optional().default(1),
-  nextRunDate: z.coerce.date().optional(),
+  nextRunDate: isoDate.optional(),
 });
 
 export const updateRecurringSchema = z.object({
@@ -22,7 +23,7 @@ export const updateRecurringSchema = z.object({
   type: z.enum(["INCOME", "EXPENSE"]).optional(),
   frequency: z.enum(["DAILY", "WEEKLY", "MONTHLY", "YEARLY"]).optional(),
   interval: z.number().int().min(1).max(365).optional(),
-  nextRunDate: z.coerce.date().optional(),
+  nextRunDate: isoDate.optional(),
   isActive: z.boolean().optional(),
 });
 

@@ -48,6 +48,8 @@ export const walletRepository = {
     data: Partial<Pick<Wallet, "name" | "currency" | "isDefault">>
   ): Promise<Wallet | null> =>
     prisma.$transaction(async (tx) => {
+      const existing = await tx.wallet.findFirst({ where: { publicId, userId } });
+      if (!existing) return null;
       if (data.isDefault) {
         await tx.wallet.updateMany({
           where: { userId, isDefault: true },
@@ -55,15 +57,16 @@ export const walletRepository = {
         });
       }
       return tx.wallet.update({
-        where: { publicId },
+        where: { id: existing.id },
         data,
       });
     }),
 
-  delete: async (publicId: string, userId: bigint): Promise<void> => {
-    await prisma.wallet.delete({
-      where: { publicId },
+  delete: async (publicId: string, userId: bigint): Promise<boolean> => {
+    const result = await prisma.wallet.deleteMany({
+      where: { publicId, userId },
     });
+    return result.count > 0;
   },
 
   updateBalance: (id: bigint, amount: Prisma.Decimal, type: "INCOME" | "EXPENSE" | "TRANSFER"): Promise<Wallet> => {

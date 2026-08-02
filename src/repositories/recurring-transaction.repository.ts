@@ -70,10 +70,11 @@ export const recurringTransactionRepository = {
       },
     }),
 
-  delete: async (publicId: string, userId: bigint): Promise<void> => {
-    await prisma.recurringTransaction.delete({
-      where: { publicId },
+  delete: async (publicId: string, userId: bigint): Promise<boolean> => {
+    const result = await prisma.recurringTransaction.deleteMany({
+      where: { publicId, userId },
     });
+    return result.count > 0;
   },
 
   updateNextRunDate: (publicId: string, nextRunDate: Date): Promise<RecurringTransaction> =>

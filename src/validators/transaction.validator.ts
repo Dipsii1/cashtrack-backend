@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isoDate } from "./common.js";
 
 export const transactionPublicIdSchema = z.object({
   publicId: z.string().min(1),
@@ -12,7 +13,7 @@ export const createTransactionSchema = z
     title: z.string().min(1).max(200),
     amount: z.number().positive().multipleOf(0.01),
     note: z.string().max(1000).optional(),
-    transactionDate: z.coerce.date().optional(),
+    transactionDate: isoDate.optional(),
   })
   .refine((data) => !(data.type === "TRANSFER" && data.categoryPublicId), {
     message: "TRANSFER transactions cannot have a category",
@@ -25,12 +26,12 @@ export const updateTransactionSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   amount: z.number().positive().multipleOf(0.01).optional(),
   note: z.string().max(1000).nullable().optional(),
-  transactionDate: z.coerce.date().optional(),
+  transactionDate: isoDate.optional(),
 });
 
 export const listTransactionQuerySchema = z.object({
-  startDate: z.coerce.date().optional(),
-  endDate: z.coerce.date().optional(),
+  startDate: isoDate.optional(),
+  endDate: isoDate.optional(),
   walletPublicId: z.string().min(1).optional(),
   categoryPublicId: z.string().min(1).optional(),
   type: z.enum(["INCOME", "EXPENSE", "TRANSFER"]).optional(),

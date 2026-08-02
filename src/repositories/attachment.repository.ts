@@ -38,9 +38,10 @@ export const attachmentRepository = {
   }): Promise<Attachment> =>
     prisma.attachment.create({ data }),
 
-  delete: async (publicId: string, userId: bigint): Promise<void> => {
-    await prisma.attachment.delete({
-      where: { publicId },
+  delete: async (publicId: string, userId: bigint): Promise<boolean> => {
+    const result = await prisma.attachment.deleteMany({
+      where: { publicId, userId },
     });
+    return result.count > 0;
   },
 };

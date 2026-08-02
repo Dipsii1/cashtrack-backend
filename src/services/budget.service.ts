@@ -95,7 +95,7 @@ export const budgetService = {
       walletId,
       categoryId,
       name: input.name,
-      amount: input.amount ? new Prisma.Decimal(input.amount) : undefined,
+      amount: input.amount !== undefined ? new Prisma.Decimal(input.amount) : undefined,
       period: input.period,
       startDate: input.startDate,
       endDate: input.endDate,

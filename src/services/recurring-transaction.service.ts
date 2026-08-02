@@ -118,7 +118,7 @@ export const recurringTransactionService = {
     const updated = await recurringTransactionRepository.update(publicId, userId, {
       categoryId: categoryId as bigint | undefined,
       title: input.title,
-      amount: input.amount ? new Prisma.Decimal(input.amount) : undefined,
+      amount: input.amount !== undefined ? new Prisma.Decimal(input.amount) : undefined,
       type: input.type,
       frequency: input.frequency,
       interval: input.interval,
@@ -148,8 +148,8 @@ export const recurringTransactionService = {
         const nextRun = calcNextRun(rt.frequency, rt.interval, rt.nextRunDate);
         await recurringTransactionRepository.updateNextRunDate(rt.publicId, nextRun);
         count++;
-      } catch {
-        // log error but continue
+      } catch (e) {
+        console.error("Failed to process recurring transaction:", e);
       }
     }
     return count;

@@ -41,9 +41,10 @@ export const savingsGoalRepository = {
       data,
     }),
 
-  delete: async (publicId: string, userId: bigint): Promise<void> => {
-    await prisma.savingsGoal.delete({
-      where: { publicId },
+  delete: async (publicId: string, userId: bigint): Promise<boolean> => {
+    const result = await prisma.savingsGoal.deleteMany({
+      where: { publicId, userId },
     });
+    return result.count > 0;
   },
 };

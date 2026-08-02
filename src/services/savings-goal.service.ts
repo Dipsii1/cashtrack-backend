@@ -35,8 +35,8 @@ export const savingsGoalService = {
     await this.getByPublicId(userId, publicId);
     const updated = await savingsGoalRepository.update(publicId, userId, {
       name: input.name,
-      targetAmount: input.targetAmount ? new Prisma.Decimal(input.targetAmount) : undefined,
-      currentAmount: input.currentAmount ? new Prisma.Decimal(input.currentAmount) : undefined,
+      targetAmount: input.targetAmount !== undefined ? new Prisma.Decimal(input.targetAmount) : undefined,
+      currentAmount: input.currentAmount !== undefined ? new Prisma.Decimal(input.currentAmount) : undefined,
       targetDate: input.targetDate,
       isAchieved: input.isAchieved,
     });

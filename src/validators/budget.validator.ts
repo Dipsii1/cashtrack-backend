@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isoDate } from "./common.js";
 
 export const budgetPublicIdSchema = z.object({
   publicId: z.string().min(1),
@@ -10,8 +11,8 @@ export const createBudgetSchema = z.object({
   period: z.enum(["WEEKLY", "MONTHLY", "YEARLY"]),
   walletPublicId: z.string().min(1).optional(),
   categoryPublicId: z.string().min(1).optional(),
-  startDate: z.coerce.date().optional(),
-  endDate: z.coerce.date().optional(),
+  startDate: isoDate.optional(),
+  endDate: isoDate.optional(),
 });
 
 export const updateBudgetSchema = z.object({
@@ -20,8 +21,8 @@ export const updateBudgetSchema = z.object({
   period: z.enum(["WEEKLY", "MONTHLY", "YEARLY"]).optional(),
   walletPublicId: z.string().min(1).optional(),
   categoryPublicId: z.string().min(1).optional(),
-  startDate: z.coerce.date().optional(),
-  endDate: z.coerce.date().nullable().optional(),
+  startDate: isoDate.optional(),
+  endDate: isoDate.nullable().optional(),
 });
 
 export const listBudgetQuerySchema = z.object({
