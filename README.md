@@ -139,6 +139,9 @@ NODE_ENV=development
 - **Dashboard message**: Controller `dashboard.controller.ts` yang salah menggunakan `ApiSuccess.UPDATED` diganti dengan pesan "Success".
 - **Recurring repository update ownership**: Repository `recurring-transaction.repository.ts` `update` sekarang memvalidasi kepemilikan.
 - **Repository `attachment` update ownership**: Ditambahkan metode `update` yang memvalidasi kepemilikan.
+- **Savings contribution route auth**: Menambahkan middleware `authenticate` yang hilang pada `savings-contribution.route.ts` sehingga `req.user` tidak lagi `undefined` saat membuat/mengakses kontribusi tabungan.
+- **Pagination query coercion**: Menambahkan `listSavingsContributionQuerySchema` (Zod) dengan `z.coerce.number()` pada `page` dan `limit` query params agar nilai string yang diterima dari Express tidak menyebabkan `PrismaClientValidationError` pada `prisma.savingsContribution.findMany()` (`take: "100"` → `take: 100`).
+- **TRANSFER validation refine fix**: Memperbaiki kondisi Zod `.refine` pada `createTransactionSchema` yang sebelumnya menolak **semua** transaksi (bukan hanya TRANSFER) karena logika terbalik. Kondisi baru: `data.type !== "TRANSFER" || !!data.destinationWalletPublicId`.
 
 #### Teknis
 
