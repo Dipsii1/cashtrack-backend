@@ -21,7 +21,7 @@ export const createTransactionSchema = z
     path: ["categoryPublicId"],
   })
   .refine(
-    (data) => data.type === "TRANSFER" && data.destinationWalletPublicId,
+    (data) => data.type !== "TRANSFER" || !!data.destinationWalletPublicId,
     {
       message: "destinationWalletPublicId is required for TRANSFER",
       path: ["destinationWalletPublicId"],

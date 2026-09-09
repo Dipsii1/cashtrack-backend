@@ -7,3 +7,9 @@ export const createSavingsContributionSchema = z.object({
   note: z.string().optional(),
   contributionDate: z.coerce.date().optional(),
 });
+
+export const listSavingsContributionQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).optional().default(1),
+  limit: z.coerce.number().int().min(1).max(100).optional().default(10),
+  savingsGoalPublicId: z.string().optional(),
+});
