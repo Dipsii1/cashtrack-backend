@@ -7,10 +7,12 @@ import budgetRoutes from "./budget.route.js";
 import savingsGoalRoutes from "./savings-goal.route.js";
 import recurringTransactionRoutes from "./recurring-transaction.route.js";
 import attachmentRoutes from "./attachment.route.js";
+import dashboardRoutes from "./dashboard.route.js";
 
 const router = Router();
 
 router.use("/auth", authRoutes);
+router.use("/dashboard", dashboardRoutes);
 router.use("/wallets", walletRoutes);
 router.use("/categories", categoryRoutes);
 router.use("/transactions", transactionRoutes);
