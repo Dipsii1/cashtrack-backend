@@ -8,9 +8,7 @@
     "start": "node dist/server.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:push": "prisma db push",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "prisma:push": "prisma db push"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
@@ -33,9 +31,7 @@
     "@types/jsonwebtoken": "^9.0.7",
     "@types/morgan": "^1.9.9",
     "@types/node": "^22.10.5",
-    "@types/supertest": "^7.2.1",
     "prisma": "^5.22.0",
-    "supertest": "^7.2.2",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
   }

@@ -109,13 +109,6 @@ CORS_ORIGIN=http://localhost:5173
 NODE_ENV=development
 ```
 
-## Catatan
-
-- Proyek ini menggunakan `bigint` untuk primary key dan `publicId` (berbasis cuid) untuk identitas publik.
-- Semua nilai uang (balance, amount, targetAmount, currentAmount) menggunakan `Prisma.Decimal` untuk menghindari masalah presisi floating-point.
-- Operasi finansial (INCOME, EXPENSE, TRANSFER, Savings Contribution) dilakukan secara atomic menggunakan `prisma.$transaction()`.
-- Semua resource diverifikasi ownership-nya terhadap user yang terautentikasi untuk mencegah masalah IDOR.
-
 ## Changelog
 
 ### [v0.1.1] - 2026-09-09
@@ -149,12 +142,8 @@ NODE_ENV=development
 
 #### Teknis
 
-- `tsconfig.json`: ditambahkan `types: ["vitest/globals", "node"]` untuk mendukung test runner global API.
-- `package.json`: ditambahkan script `test` (`vitest run`) dan `test:watch` (`vitest`), beserta dev dependencies `vitest`, `supertest`, `@types/supertest`, `reflect-metadata`.
-- `vitest.config.ts`: file konfigurasi baru untuk Vitest.
-- `src/tests/setup.ts`: setup Vitest dengan truncate database untuk isolasi test.
-- `src/tests/helpers.ts`: helper untuk registrasi/login dan pembuatan user test.
-- `src/tests/auth-wallet-transaction.test.ts`: suite test integrasi mencakup register, login, wallet, income, expense, transfer (termasuk transfer gagal), category type validation, savings goal, savings contribution (atomic, auto-achieve), budget, otorisasi, dan pencegahan IDOR.
+- `package.json`: dihapus script `test` dan `test:watch` beserta dev dependencies `vitest`, `supertest`, `@types/supertest`, dan `reflect-metadata` dari `devDependencies` karena pengguna memilih untuk tidak menggunakan vitest.
+- `tsconfig.json`: dikembalikan ke konfigurasi semula (diapa `types`).
 
 ### [v0.1.0] - Release Awal
 
