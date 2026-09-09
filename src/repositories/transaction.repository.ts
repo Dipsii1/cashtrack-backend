@@ -94,13 +94,19 @@ export const transactionRepository = {
     });
   },
 
-  delete: (publicId: string, userId: bigint): Promise<{ walletId: bigint; amount: Prisma.Decimal; type: string }> =>
-    prisma.$transaction(async (tx) =>
+  delete: async (publicId: string, userId: bigint): Promise<{ walletId: bigint; amount: Prisma.Decimal; type: string; destinationWalletId: bigint | null } | null> => {
+    const existing = await prisma.transaction.findFirst({
+      where: { publicId, userId },
+      select: { id: true, walletId: true, amount: true, type: true, destinationWalletId: true },
+    });
+    if (!existing) return null;
+    return prisma.$transaction(async (tx) =>
       tx.transaction.delete({
         where: { publicId },
-        select: { walletId: true, amount: true, type: true },
+        select: { walletId: true, amount: true, type: true, destinationWalletId: true },
       })
-    ),
+    );
+  },
 
   updateWalletBalance: async (walletId: bigint, amount: Prisma.Decimal, type: string): Promise<void> => {
     const delta = type === "EXPENSE" ? amount.mul(-1) : amount;
