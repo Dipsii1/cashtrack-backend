@@ -14,20 +14,39 @@ export const createTransactionSchema = z
     amount: z.number().positive().multipleOf(0.01),
     note: z.string().max(1000).optional(),
     transactionDate: isoDate.optional(),
+    destinationWalletPublicId: z.string().min(1).optional(),
   })
   .refine((data) => !(data.type === "TRANSFER" && data.categoryPublicId), {
     message: "TRANSFER transactions cannot have a category",
     path: ["categoryPublicId"],
-  });
+  })
+  .refine(
+    (data) => data.type === "TRANSFER" && data.destinationWalletPublicId,
+    {
+      message: "destinationWalletPublicId is required for TRANSFER",
+      path: ["destinationWalletPublicId"],
+    }
+  )
+  .refine(
+    (data) =>
+      data.type !== "TRANSFER" ||
+      (data.destinationWalletPublicId && data.destinationWalletPublicId !== data.walletPublicId),
+    {
+      message: "Source and destination wallets must be different",
+      path: ["destinationWalletPublicId"],
+    }
+  );
 
-export const updateTransactionSchema = z.object({
-  categoryPublicId: z.string().min(1).optional(),
-  type: z.enum(["INCOME", "EXPENSE", "TRANSFER"]).optional(),
-  title: z.string().min(1).max(200).optional(),
-  amount: z.number().positive().multipleOf(0.01).optional(),
-  note: z.string().max(1000).nullable().optional(),
-  transactionDate: isoDate.optional(),
-});
+export const updateTransactionSchema = z
+  .object({
+    categoryPublicId: z.string().min(1).nullable().optional(),
+    type: z.enum(["INCOME", "EXPENSE", "TRANSFER"]).optional(),
+    title: z.string().min(1).max(200).optional(),
+    amount: z.number().positive().multipleOf(0.01).optional(),
+    note: z.string().max(1000).nullable().optional(),
+    transactionDate: isoDate.optional(),
+    destinationWalletPublicId: z.string().min(1).nullable().optional(),
+  });
 
 export const listTransactionQuerySchema = z.object({
   startDate: isoDate.optional(),

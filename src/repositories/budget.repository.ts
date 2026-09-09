@@ -43,19 +43,22 @@ export const budgetRepository = {
   }): Promise<Budget> =>
     prisma.budget.create({ data }),
 
-  update: (
+  update: async (
     publicId: string,
     userId: bigint,
     data: Partial<Pick<Budget, "walletId" | "categoryId" | "name" | "amount" | "period" | "startDate" | "endDate">>
-  ): Promise<Budget | null> =>
-    prisma.budget.update({
-      where: { publicId },
+  ): Promise<Budget | null> => {
+    const existing = await prisma.budget.findFirst({ where: { publicId, userId } });
+    if (!existing) return null;
+    return prisma.budget.update({
+      where: { id: existing.id },
       data,
       include: {
         wallet: { select: { publicId: true, name: true } },
         category: { select: { publicId: true, name: true, icon: true, color: true } },
       },
-    }),
+    });
+  },
 
   delete: async (publicId: string, userId: bigint): Promise<boolean> => {
     const result = await prisma.budget.deleteMany({

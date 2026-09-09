@@ -1,5 +1,6 @@
 import { Attachment, Prisma } from "@prisma/client";
 import { prisma } from "../prisma/client.js";
+import { AppError } from "../utils/errors.js";
 
 export const attachmentRepository = {
   findByUserId: async (
@@ -37,6 +38,19 @@ export const attachmentRepository = {
     fileSize: bigint;
   }): Promise<Attachment> =>
     prisma.attachment.create({ data }),
+
+  update: async (
+    publicId: string,
+    userId: bigint,
+    data: Partial<Pick<Attachment, "transactionId" | "fileName" | "fileUrl" | "mimeType" | "fileSize">>
+  ): Promise<Attachment> => {
+    const existing = await prisma.attachment.findFirst({ where: { publicId, userId } });
+    if (!existing) throw new AppError("Attachment not found", 404);
+    return prisma.attachment.update({
+      where: { id: existing.id },
+      data,
+    });
+  },
 
   delete: async (publicId: string, userId: bigint): Promise<boolean> => {
     const result = await prisma.attachment.deleteMany({

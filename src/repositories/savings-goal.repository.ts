@@ -31,15 +31,18 @@ export const savingsGoalRepository = {
   }): Promise<SavingsGoal> =>
     prisma.savingsGoal.create({ data }),
 
-  update: (
+  update: async (
     publicId: string,
     userId: bigint,
     data: Partial<Pick<SavingsGoal, "name" | "targetAmount" | "currentAmount" | "targetDate" | "isAchieved">>
-  ): Promise<SavingsGoal | null> =>
-    prisma.savingsGoal.update({
-      where: { publicId },
+  ): Promise<SavingsGoal | null> => {
+    const existing = await prisma.savingsGoal.findFirst({ where: { publicId, userId } });
+    if (!existing) return null;
+    return prisma.savingsGoal.update({
+      where: { id: existing.id },
       data,
-    }),
+    });
+  },
 
   delete: async (publicId: string, userId: bigint): Promise<boolean> => {
     const result = await prisma.savingsGoal.deleteMany({

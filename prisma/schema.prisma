@@ -3,168 +3,332 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
+// ======================================================
+// USER
+// ======================================================
+
 model User {
-  id               BigInt   @id @default(autoincrement())
-  publicId         String   @unique @default(cuid())
+  id       BigInt @id @default(autoincrement())
+  publicId String @unique @default(cuid())
+
   name             String
-  email            String   @unique
+  email            String  @unique
   passwordHash     String
   refreshTokenHash String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
   wallets               Wallet[]
   categories            Category[]
   transactions          Transaction[]
   budgets               Budget[]
   savingsGoals          SavingsGoal[]
+  savingsContributions  SavingsContribution[]
   recurringTransactions RecurringTransaction[]
   attachments           Attachment[]
 }
 
+// ======================================================
+// WALLET
+// ======================================================
+
 model Wallet {
-  id        BigInt   @id @default(autoincrement())
-  publicId  String   @unique @default(cuid())
-  userId    BigInt
+  id       BigInt @id @default(autoincrement())
+  publicId String @unique @default(cuid())
+
+  userId BigInt
+
   name      String
-  balance   Decimal  @default(0) @db.Decimal(15, 2)
-  currency  String   @default("IDR")
-  isDefault Boolean  @default(false)
+  balance   Decimal @default(0) @db.Decimal(15, 2)
+  currency  String  @default("IDR")
+  isDefault Boolean @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user                 User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions         Transaction[]
-  budgets              Budget[]
-  RecurringTransaction RecurringTransaction[]
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Wallet asal transaksi
+  transactionsFrom Transaction[] @relation("SourceWallet")
+
+  // Wallet tujuan transaksi transfer
+  transactionsTo Transaction[] @relation("DestinationWallet")
+
+  budgets Budget[]
+
+  recurringTransactions RecurringTransaction[]
+
+  savingsContributions SavingsContribution[]
 
   @@index([userId])
 }
+
+// ======================================================
+// CATEGORY
+// ======================================================
 
 model Category {
-  id        BigInt       @id @default(autoincrement())
-  publicId  String       @unique @default(cuid())
-  userId    BigInt
-  name      String
-  icon      String?
-  color     String?
-  type      CategoryType @default(EXPENSE)
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  id       BigInt @id @default(autoincrement())
+  publicId String @unique @default(cuid())
 
-  user                 User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions         Transaction[]
-  budgets              Budget[]
-  RecurringTransaction RecurringTransaction[]
+  userId BigInt
+
+  name  String
+  icon  String?
+  color String?
+
+  type CategoryType @default(EXPENSE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  transactions Transaction[]
+
+  budgets Budget[]
+
+  recurringTransactions RecurringTransaction[]
 
   @@index([userId])
 }
 
-model Transaction {
-  id              BigInt          @id @default(autoincrement())
-  publicId        String          @unique @default(cuid())
-  userId          BigInt
-  walletId        BigInt
-  categoryId      BigInt?
-  type            TransactionType
-  title           String
-  amount          Decimal         @db.Decimal(15, 2)
-  note            String?
-  transactionDate DateTime        @default(now())
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+// ======================================================
+// TRANSACTION
+// ======================================================
 
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  wallet      Wallet       @relation(fields: [walletId], references: [id], onDelete: Cascade)
-  category    Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+model Transaction {
+  id       BigInt @id @default(autoincrement())
+  publicId String @unique @default(cuid())
+
+  userId BigInt
+
+  // Wallet sumber
+  walletId BigInt
+
+  // Hanya digunakan untuk TRANSFER
+  destinationWalletId BigInt?
+
+  categoryId BigInt?
+
+  type TransactionType
+
+  title  String
+  amount Decimal @db.Decimal(15, 2)
+
+  note String?
+
+  transactionDate DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  wallet Wallet @relation("SourceWallet", fields: [walletId], references: [id], onDelete: Cascade)
+
+  destinationWallet Wallet? @relation("DestinationWallet", fields: [destinationWalletId], references: [id], onDelete: Cascade)
+
+  category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
   attachments Attachment[]
 
   @@index([userId, transactionDate])
   @@index([userId, walletId])
+  @@index([userId, destinationWalletId])
   @@index([userId, categoryId])
 }
 
+// ======================================================
+// BUDGET
+// ======================================================
+
 model Budget {
-  id         BigInt       @id @default(autoincrement())
-  publicId   String       @unique @default(cuid())
-  userId     BigInt
+  id       BigInt @id @default(autoincrement())
+  publicId String @unique @default(cuid())
+
+  userId BigInt
+
   walletId   BigInt?
   categoryId BigInt?
-  name       String
-  amount     Decimal      @db.Decimal(15, 2)
-  period     BudgetPeriod
-  startDate  DateTime     @default(now())
-  endDate    DateTime?
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
 
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  wallet   Wallet?   @relation(fields: [walletId], references: [id], onDelete: SetNull)
-  category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  name String
 
-  @@index([userId])
-}
+  amount Decimal @db.Decimal(15, 2)
 
-model SavingsGoal {
-  id            BigInt    @id @default(autoincrement())
-  publicId      String    @unique @default(cuid())
-  userId        BigInt
-  name          String
-  targetAmount  Decimal   @db.Decimal(15, 2)
-  currentAmount Decimal   @default(0) @db.Decimal(15, 2)
-  targetDate    DateTime?
-  isAchieved    Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  period BudgetPeriod
 
+  startDate DateTime  @default(now())
+  endDate   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
-}
+  wallet Wallet? @relation(fields: [walletId], references: [id], onDelete: SetNull)
 
-model RecurringTransaction {
-  id          BigInt          @id @default(autoincrement())
-  publicId    String          @unique @default(cuid())
-  userId      BigInt
-  walletId    BigInt
-  categoryId  BigInt?
-  title       String
-  amount      Decimal         @db.Decimal(15, 2)
-  type        TransactionType
-  frequency   Frequency
-  interval    Int             @default(1)
-  nextRunDate DateTime
-  isActive    Boolean         @default(true)
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  wallet   Wallet    @relation(fields: [walletId], references: [id], onDelete: Cascade)
   category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
   @@index([userId])
+  @@index([userId, walletId])
+  @@index([userId, categoryId])
 }
 
-model Attachment {
-  id            BigInt   @id @default(autoincrement())
-  publicId      String   @unique @default(cuid())
-  userId        BigInt
-  transactionId BigInt?
-  fileName      String
-  fileUrl       String
-  mimeType      String
-  fileSize      BigInt
-  createdAt     DateTime @default(now())
+// ======================================================
+// SAVINGS GOAL
+// ======================================================
 
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+model SavingsGoal {
+  id       BigInt @id @default(autoincrement())
+  publicId String @unique @default(cuid())
+
+  userId BigInt
+
+  name String
+
+  targetAmount Decimal @db.Decimal(15, 2)
+
+  currentAmount Decimal @default(0) @db.Decimal(15, 2)
+
+  targetDate DateTime?
+
+  isAchieved Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  contributions SavingsContribution[]
+
+  @@index([userId])
+}
+
+// ======================================================
+// SAVINGS CONTRIBUTION
+// ======================================================
+
+model SavingsContribution {
+  id       BigInt @id @default(autoincrement())
+  publicId String @unique @default(cuid())
+
+  userId BigInt
+
+  savingsGoalId BigInt
+
+  // Wallet yang digunakan untuk menabung
+  walletId BigInt?
+
+  amount Decimal @db.Decimal(15, 2)
+
+  note String?
+
+  contributionDate DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  savingsGoal SavingsGoal @relation(fields: [savingsGoalId], references: [id], onDelete: Cascade)
+
+  wallet Wallet? @relation(fields: [walletId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([savingsGoalId])
+  @@index([walletId])
+}
+
+// ======================================================
+// RECURRING TRANSACTION
+// ======================================================
+
+model RecurringTransaction {
+  id       BigInt @id @default(autoincrement())
+  publicId String @unique @default(cuid())
+
+  userId BigInt
+
+  walletId BigInt
+
+  categoryId BigInt?
+
+  title String
+
+  amount Decimal @db.Decimal(15, 2)
+
+  type TransactionType
+
+  frequency Frequency
+
+  // Contoh:
+  // interval = 1, frequency = MONTHLY
+  // berarti setiap 1 bulan
+  interval Int @default(1)
+
+  nextRunDate DateTime
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([userId, nextRunDate])
+  @@index([userId, isActive])
+}
+
+// ======================================================
+// ATTACHMENT
+// ======================================================
+
+model Attachment {
+  id       BigInt @id @default(autoincrement())
+  publicId String @unique @default(cuid())
+
+  userId BigInt
+
+  transactionId BigInt?
+
+  fileName String
+  fileUrl  String
+  mimeType String
+  fileSize BigInt
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   transaction Transaction? @relation(fields: [transactionId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([transactionId])
 }
+
+// ======================================================
+// ENUMS
+// ======================================================
 
 enum TransactionType {
   INCOME

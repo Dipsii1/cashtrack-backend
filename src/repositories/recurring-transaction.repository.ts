@@ -43,6 +43,15 @@ export const recurringTransactionRepository = {
       },
     }),
 
+  findDueByUserId: async (userId: bigint, now: Date) =>
+    prisma.recurringTransaction.findMany({
+      where: { userId, isActive: true, nextRunDate: { lte: now } },
+      include: {
+        wallet: true,
+        category: true,
+      },
+    }),
+
   create: (data: {
     userId: bigint;
     walletId: bigint;
@@ -56,19 +65,22 @@ export const recurringTransactionRepository = {
   }): Promise<RecurringTransaction> =>
     prisma.recurringTransaction.create({ data }),
 
-  update: (
+  update: async (
     publicId: string,
     userId: bigint,
     data: Partial<Pick<RecurringTransaction, "categoryId" | "title" | "amount" | "type" | "frequency" | "interval" | "nextRunDate" | "isActive">>
-  ): Promise<RecurringTransaction | null> =>
-    prisma.recurringTransaction.update({
-      where: { publicId },
+  ): Promise<RecurringTransaction | null> => {
+    const existing = await prisma.recurringTransaction.findFirst({ where: { publicId, userId } });
+    if (!existing) return null;
+    return prisma.recurringTransaction.update({
+      where: { id: existing.id },
       data,
       include: {
         wallet: { select: { publicId: true, name: true } },
         category: { select: { publicId: true, name: true, icon: true, color: true } },
       },
-    }),
+    });
+  },
 
   delete: async (publicId: string, userId: bigint): Promise<boolean> => {
     const result = await prisma.recurringTransaction.deleteMany({
@@ -82,4 +94,11 @@ export const recurringTransactionRepository = {
       where: { publicId },
       data: { nextRunDate },
     }),
+
+  markProcessed: async (publicId: string, nextRunDate: Date): Promise<void> => {
+    await prisma.recurringTransaction.updateMany({
+      where: { publicId, nextRunDate: { lte: nextRunDate } },
+      data: { isActive: true, nextRunDate },
+    });
+  },
 };

@@ -35,15 +35,18 @@ export const categoryRepository = {
   }): Promise<Category> =>
     prisma.category.create({ data }),
 
-  update: (
+  update: async (
     publicId: string,
     userId: bigint,
     data: Partial<Pick<Category, "name" | "icon" | "color" | "type">>
-  ): Promise<Category | null> =>
-    prisma.category.update({
-      where: { publicId },
+  ): Promise<Category | null> => {
+    const existing = await prisma.category.findFirst({ where: { publicId, userId } });
+    if (!existing) return null;
+    return prisma.category.update({
+      where: { id: existing.id },
       data,
-    }),
+    });
+  },
 
   delete: async (publicId: string, userId: bigint): Promise<boolean> => {
     const result = await prisma.category.deleteMany({

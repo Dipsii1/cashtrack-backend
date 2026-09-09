@@ -77,19 +77,22 @@ export const transactionRepository = {
   }): Promise<Transaction> =>
     prisma.transaction.create({ data }),
 
-  update: (
+  update: async (
     publicId: string,
     userId: bigint,
-    data: Partial<Pick<Transaction, "categoryId" | "type" | "title" | "amount" | "note" | "transactionDate">>
-  ): Promise<Transaction | null> =>
-    prisma.transaction.update({
-      where: { publicId },
+    data: Partial<Pick<Transaction, "categoryId" | "type" | "title" | "amount" | "note" | "transactionDate" | "destinationWalletId" | "walletId">>
+  ): Promise<Transaction | null> => {
+    const existing = await prisma.transaction.findFirst({ where: { publicId, userId } });
+    if (!existing) return null;
+    return prisma.transaction.update({
+      where: { id: existing.id },
       data,
       include: {
         wallet: { select: { publicId: true, name: true, currency: true } },
         category: { select: { publicId: true, name: true, icon: true, color: true, type: true } },
       },
-    }),
+    });
+  },
 
   delete: (publicId: string, userId: bigint): Promise<{ walletId: bigint; amount: Prisma.Decimal; type: string }> =>
     prisma.$transaction(async (tx) =>

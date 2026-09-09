@@ -5,6 +5,7 @@ import categoryRoutes from "./category.route.js";
 import transactionRoutes from "./transaction.route.js";
 import budgetRoutes from "./budget.route.js";
 import savingsGoalRoutes from "./savings-goal.route.js";
+import savingsContributionRoutes from "./savings-contribution.route.js";
 import recurringTransactionRoutes from "./recurring-transaction.route.js";
 import attachmentRoutes from "./attachment.route.js";
 import dashboardRoutes from "./dashboard.route.js";
@@ -18,6 +19,7 @@ router.use("/categories", categoryRoutes);
 router.use("/transactions", transactionRoutes);
 router.use("/budgets", budgetRoutes);
 router.use("/savings-goals", savingsGoalRoutes);
+router.use("/savings-contributions", savingsContributionRoutes);
 router.use("/recurring-transactions", recurringTransactionRoutes);
 router.use("/attachments", attachmentRoutes);
 
